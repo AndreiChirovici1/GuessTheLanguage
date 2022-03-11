@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- Linking Local CSS -->
+    <link rel='stylesheet' href="{{ url_for('static', filename='main.css') }}">
+    <script src="{{url_for('static', filename='main.js')}}"></script>
+    <!-- Linking Local Scripts -->
+
+
+</head>
+
+{% block head %}
+<!-- Page header -->
+{% endblock %}
+
+<header class="header">
+
+    <h1>Guess the language</h1>
+    <nav>
+
+        <!-- Nav bar -->
+        <ul>
+            <li><a href="{{url_for('home')}}">Home</a></li>
+            <li><a href="{{url_for('instructions')}}">Instructions</a></li>
+            <li><a href="{{url_for('play')}}">Play</a></li>
+            <li><a href="{{url_for('languages')}}">Supported Languages</a></li>
+            <li><a href="{{url_for('contact')}}">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+
+{% block content %}
+<!-- Page content -->
+{% endblock %}
+
+<footer class="footer">
+    <p>Copyright &copy; 2022 <a href="">Andrei Chirovici</a></p>
+</footer>
+</html>

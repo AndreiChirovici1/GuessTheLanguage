@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Login - Guess the language{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Lobster"
+    xmlns="http://www.w3.org/1999/html">
+{% endblock %}
+
+{% block content %}
+<div class="body">
+    <form method="POST">
+        <div>
+            <label for="exampleInputEmail1" style="color:white; font-size: 28px;">Login below:</label>
+            <br>
+            <br>
+            <label for="firstname" style="color:white; font-size: 20px;">First name:</label>
+            <input type="text" style="height:50px;" name="firstname">
+            <br>
+            <label for="exampleInputEmail1" style="color:white; font-size: 20px;">Email:</label>
+            <input type="email" style="height:50px;" name="emailinput">
+            <br>
+            <button class="btn1" type="submit">LOGIN & PLAY</button>
+        </div>
+    </form>
+    
+    
+</div>
+{% endblock %}
