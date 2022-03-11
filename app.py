@@ -146,7 +146,7 @@ def register():
             user = users(name = request.form['firstname'], email = request.form['emailinput'])
             game = games(fk_user_id = user.id, scoreStreak = 0)
             # Take user details and store in DB
-
+            
             db.session.add(user)
             db.session.commit()
         
