@@ -110,6 +110,11 @@ def instructions():
 def languages():
     return render_template('languages.html')
 
+@app.route('/logout')
+def logout():
+    session.pop('email', None)
+    return render_template('home.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'email' in session:
@@ -146,7 +151,7 @@ def register():
             user = users(name = request.form['firstname'], email = request.form['emailinput'])
             game = games(fk_user_id = user.id, scoreStreak = 0)
             # Take user details and store in DB
-            
+
             db.session.add(user)
             db.session.commit()
         
