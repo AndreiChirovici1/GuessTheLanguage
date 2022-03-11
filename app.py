@@ -23,11 +23,11 @@ class users(db.Model):
     name = db.Column(db.String(100))
     email = db.Column(db.String(100))  
 
-class game(db.Model):
+class games(db.Model):
     __tablename__ = "games"
     gameid = db.Column('game_id', db.Integer, primary_key = True)
     fk_user_id = db.Column(Integer, ForeignKey('users.user_id'))
-    scoreStreak = db.Column(db.String(100))  
+    scoreStreak = db.Column(db.Integer)  
 
 def __init__(self, name, email):
     self.name = name
@@ -48,6 +48,8 @@ def play():
     if request.method == 'POST':
         # Input text from form
         text = request.form['inputtext']
+        streakscore = request.form['scorelabel']
+        userselection = request.form.get('langs')
         
         # Array storing codes of Google Analytics' supported languages 
         langs = ["af", "sq", "am", "ar", "hy", "az", "eu", "be", "bn", "bs", "bg", "ca", "ceb", "zh", "zh-TW", "co", "hr", "cs", "da", "nl", "en", "eo", "et", "fi", "fr", "fy", "gl", "ka", "de", "el", "gu", "ht", "ha", "haw", "he", "hi", "hmn", "hu", "is", "ig", "id", "ga", "it", "ja", "jv", "kn", "kk", "km", "rw", "ko", "ku", "ky", "lo", "lv", "lt", "lb", "mk", "mg", "ms", "ml", "mt", "mi", "mr", "mn", "my", "ne", "no", "ny", "or", "ps", "fa", "pl", "pt", "pa", "ro", "ru", "sm", "gd", "sr", "st", "sn", "sd", "si", "sk", "sl", "so", "es", "su", "sw", "sv", "tl", "tg", "ta", "tt", "te", "th", "tr", "tk", "uk", "ur", "ug", "uz", "vi", "cy", "xh", "yi", "yo", "zu"]
@@ -67,12 +69,30 @@ def play():
             text,
             target_language=target
         )
+        useremail = session['email']
+        if target == userselection:
+            # Streak score should update from JS on page
+            # Query to get userID by email logged into session
+            user = users.query.filter_by(email=useremail).first()
+            userid = user.id
+            if games.query.filter_by(fk_user_id=userid).first() is None:
+                game = games(fk_user_id = userid, scoreStreak = streakscore)
+                db.session.add(game)
+                db.session.commit()
+            else:
+                session.query(games).update({games.scoreStreak == streakscore})
+                db.session.commit()
 
         translatedText = output['translatedText']
         # Adding values to session so that we can display on page
         session['input'] = text
         session['output'] = translatedText
         session["target"] = target
+        user = users.query.filter_by(email=useremail).first()
+        userid = user.id
+        latestgame = games.query.filter_by(fk_user_id = userid).first()
+        latestscore = latestgame.scoreStreak
+        session['latestscore'] = latestscore
         print(translatedText)
         print(output)
         print(target)
@@ -124,7 +144,7 @@ def register():
             flash('Please enter all required details', 'error')
         else:
             user = users(name = request.form['firstname'], email = request.form['emailinput'])
-            
+            game = games(fk_user_id = user.id, scoreStreak = 0)
             # Take user details and store in DB
 
             db.session.add(user)
