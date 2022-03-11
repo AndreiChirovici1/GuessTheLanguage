@@ -6,6 +6,9 @@ from google.cloud import translate_v2 as translate
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"/Users/craig/Documents/Andrei-Project/Chatalot 2.0/GoogleCloudKey.json"
 import six
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Table, Column, Integer, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
 app = Flask(__name__)
 app.secret_key = 'averysecretkey1'
@@ -15,13 +18,23 @@ app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
 db = SQLAlchemy(app)
 
 class users(db.Model):
+    __tablename__ = "users"
     id = db.Column('user_id', db.Integer, primary_key = True)
     name = db.Column(db.String(100))
     email = db.Column(db.String(100))  
 
+class game(db.Model):
+    __tablename__ = "games"
+    gameid = db.Column('game_id', db.Integer, primary_key = True)
+    fk_user_id = db.Column(Integer, ForeignKey('users.user_id'))
+    scoreStreak = db.Column(db.String(100))  
+
 def __init__(self, name, email):
     self.name = name
     self.email = email
+
+def __init__(self, scoreStreak):
+    self.scoreStreak = scoreStreak
 
 @app.route('/')
 def home():
@@ -65,11 +78,9 @@ def play():
         print(target)
     return render_template('play.html')
 
-
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
-
 
 @app.route('/instructions')
 def instructions():
@@ -116,8 +127,6 @@ def register():
             
             # Take user details and store in DB
 
-            # db.create_all()
-
             db.session.add(user)
             db.session.commit()
         
@@ -141,4 +150,3 @@ def register():
 if __name__ == "__main__":
     db.create_all()
     app.run(debug=True)
-
