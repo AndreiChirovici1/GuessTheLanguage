@@ -11,11 +11,11 @@ from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import session as sql_session
 from sqlalchemy.ext.declarative import declarative_base
-
+from os import getenv
 
 app = Flask(__name__)
 app.secret_key = 'averysecretkey1'
-app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 
 
@@ -31,7 +31,7 @@ class users(db.Model):
 class games(db.Model):
     gameid = db.Column(db.Integer, primary_key = True)
     scoreStreak = db.Column(db.Integer)
-    fk_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    fk_user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
 
 def __init__(self, name, email, scoreStreak, fk_user_id):
     self.name = name
