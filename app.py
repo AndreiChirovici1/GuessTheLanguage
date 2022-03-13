@@ -1,4 +1,5 @@
 from flask import Flask, redirect, render_template, url_for, request, Response, session, flash
+from flask_testing import TestCase
 from flask_mail import Mail, Message
 from random import randrange
 import os
@@ -8,33 +9,35 @@ import six
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import session as sql_session
 from sqlalchemy.ext.declarative import declarative_base
+
 
 app = Flask(__name__)
 app.secret_key = 'averysecretkey1'
 app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+
 
 # Database
 db = SQLAlchemy(app)
 
 class users(db.Model):
-    __tablename__ = "users"
-    id = db.Column('user_id', db.Integer, primary_key = True)
-    name = db.Column(db.String(100))
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(50))
     email = db.Column(db.String(100))  
+    game = db.relationship('games', backref='users')
 
 class games(db.Model):
-    __tablename__ = "games"
-    gameid = db.Column('game_id', db.Integer, primary_key = True)
-    fk_user_id = db.Column(Integer, ForeignKey('users.user_id'))
-    scoreStreak = db.Column(db.Integer)  
+    gameid = db.Column(db.Integer, primary_key = True)
+    scoreStreak = db.Column(db.Integer)
+    fk_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-def __init__(self, name, email):
+def __init__(self, name, email, scoreStreak, fk_user_id):
     self.name = name
     self.email = email
-
-def __init__(self, scoreStreak):
     self.scoreStreak = scoreStreak
+    self.fk_user_id = fk_user_id
 
 @app.route('/')
 def home():
@@ -51,6 +54,10 @@ def play():
         streakscore = request.form['scorelabel']
         userselection = request.form.get('langs')
         
+        # Printing users and games for testing purposes
+        print(users.query.order_by(users.id).all())
+        print(games.query.order_by(games.gameid).all())
+
         # Array storing codes of Google Analytics' supported languages 
         langs = ["af", "sq", "am", "ar", "hy", "az", "eu", "be", "bn", "bs", "bg", "ca", "ceb", "zh", "zh-TW", "co", "hr", "cs", "da", "nl", "en", "eo", "et", "fi", "fr", "fy", "gl", "ka", "de", "el", "gu", "ht", "ha", "haw", "he", "hi", "hmn", "hu", "is", "ig", "id", "ga", "it", "ja", "jv", "kn", "kk", "km", "rw", "ko", "ku", "ky", "lo", "lv", "lt", "lb", "mk", "mg", "ms", "ml", "mt", "mi", "mr", "mn", "my", "ne", "no", "ny", "or", "ps", "fa", "pl", "pt", "pa", "ro", "ru", "sm", "gd", "sr", "st", "sn", "sd", "si", "sk", "sl", "so", "es", "su", "sw", "sv", "tl", "tg", "ta", "tt", "te", "th", "tr", "tk", "uk", "ur", "ug", "uz", "vi", "cy", "xh", "yi", "yo", "zu"]
         # Length of Array - 108
@@ -75,13 +82,17 @@ def play():
             # Query to get userID by email logged into session
             user = users.query.filter_by(email=useremail).first()
             userid = user.id
-            if games.query.filter_by(fk_user_id=userid).first() is None:
-                game = games(fk_user_id = userid, scoreStreak = streakscore)
-                db.session.add(game)
-                db.session.commit()
-            else:
-                session.query(games).update({games.scoreStreak == streakscore})
-                db.session.commit()
+            game = games(fk_user_id = userid, scoreStreak = streakscore)
+            db.session.add(game)
+            db.session.commit()
+            
+            #if games.query.filter_by(fk_user_id=userid).first() is None:
+            #    game = games(fk_user_id = userid, scoreStreak = streakscore)
+            #    db.session.add(game)
+            #    db.session.commit()
+            #else:
+            #    session.query(games).update({games.scoreStreak == streakscore})
+            #    db.session.commit()
 
         translatedText = output['translatedText']
         # Adding values to session so that we can display on page
@@ -90,8 +101,11 @@ def play():
         session["target"] = target
         user = users.query.filter_by(email=useremail).first()
         userid = user.id
-        latestgame = games.query.filter_by(fk_user_id = userid).first()
+        print(userid)
+        latestgame = games.query.filter_by(fk_user_id=0).first()
+        print(latestgame)
         latestscore = latestgame.scoreStreak
+        print(latestscore)
         session['latestscore'] = latestscore
         print(translatedText)
         print(output)
@@ -112,6 +126,9 @@ def languages():
 
 @app.route('/logout')
 def logout():
+    if 'email' in session:
+        return redirect(url_for('home'))
+    
     session.pop('email', None)
     return render_template('home.html')
 
@@ -143,18 +160,21 @@ def register():
         return redirect(url_for('home'))
 
     if request.method == "POST":
-        
         # Data validation
         if not request.form['firstname'] or not request.form['emailinput']:
             flash('Please enter all required details', 'error')
         else:
             user = users(name = request.form['firstname'], email = request.form['emailinput'])
-            game = games(fk_user_id = user.id, scoreStreak = 0)
-            # Take user details and store in DB
-
             db.session.add(user)
             db.session.commit()
-        
+            
+            userid = user.id
+            game = games(fk_user_id = userid, scoreStreak = 0)
+
+            db.session.add(game)
+            db.session.commit()
+            session['latestscore'] = game.scoreStreak
+            
             # Emailing user
             #app.config['MAIL_SERVER'] = 'smtp.gmail.com'
             #app.config['MAIL_PORT'] = 465
