@@ -1,14 +1,13 @@
 from flask import url_for
 from flask_testing import TestCase
-import pytest
-from app import db, users, games, app
-import app
+from application import app, db
+from application.models import users, games
 
 class TestBase(TestCase):
     def create_app(self):
         app.config.update(
-            SQLALCHEMY_DATABASE_URI = 'sqlite:///users.sqlite3',
-            SECRET_KEY = 'mysecretkey',
+            SQLALCHEMY_DATABASE_URI = 'sqlite:///test.sqlite3',
+            SECRET_KEY = 'testsecretkey',
             DEBUG_MODE = True,
             WTF_CSRF_ENABLED = False
         )
@@ -31,11 +30,11 @@ class TestHome(TestBase):
         self.assert200(response)
 
 class TestAddUser(TestBase):
-    def test_create_get(self):
+    def test_register_page(self):
         response = self.client.get(url_for('register'))
         self.assert200(response)
     
-    def test_create_post(self):
+    def test_register_user(self):
         response = self.client.post(
             url_for('register'),
             data = dict(name="Andrei", email="andrei.chirovici@gmail.com"),
