@@ -106,6 +106,29 @@ def logout():
     session.pop('email', None)
     return render_template('home.html')
 
+@app.route('/delete')
+def deleteuser():
+    if 'email' not in session:
+        return redirect(url_for('home'))
+    
+    useremail = session['email']
+    user = users.query.filter_by(email=useremail).first()
+    game = games.query.filter_by(fk_user_id=user.id).first()
+    
+    print(game)
+    db.session.delete(game)
+    db.session.delete(user)
+    db.session.commit()
+    session.pop('email', None)
+    return render_template('home.html')
+
+@app.route('/profile')
+def profile():
+    if 'email' not in session:
+        return redirect(url_for('home'))
+    
+    return render_template('profile.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'email' in session:
@@ -116,16 +139,16 @@ def login():
         emailform = request.form['emailinput']
 
         user = users.query.filter_by(email=emailform).first()
-        emaildb = user.email
-        print(emaildb)
 
-        if emaildb == emailform:
+        if user.email == emailform:
             # Adding user to session
             session['email'] = emailform
+            session['username'] = name
             return redirect(url_for('play'))
         else:
             flash('Name or email entered incorrect', 'error')
-            return redirect(url_for('login'))
+            return redirect(url_for('login'))       
+    
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
