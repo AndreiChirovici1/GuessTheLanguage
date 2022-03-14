@@ -11,9 +11,9 @@
 
     <div class="mainContent">
         <div class="content">
-
             <div class="message-container">
                 <form method="POST">
+                    <h2 style="color:white; margin-bottom: 20px;">Streak score: <input style="height:24px; width:20px;" id="scorelabel" name="scorelabel" value ="0" readonly></h2>
                     <!-- <label class="trns">Your current <b>Streak Score</b> is: </label><label style="color:red; font-weight: 900; font-size: 15px;" id="streakLabel">0</label><br> -->
                     <label class="trns">Type in a sentence of your choice in <b>English</b></label>
                     <div class="bar"></div><input type="text" id="message" name="inputtext" value="{{session['input']}}" style="height:40px;">
@@ -22,7 +22,7 @@
             <label class="trns">Your <b>random</b> translation is: </label>
             <input type="text" id="output" value="{{session['output']}}" readonly>
             <input type="hidden" id="targetHolder" value="{{session['target']}}" readonly>
-            </form>
+            
 
             <label class="trns" for="langs">Which language do you think it is?:</label>
 
@@ -136,6 +136,7 @@
                 <option value="yo">Yoruba</option>
                 <option value="zu">Zulu</option>
             </select>
+        </form>
             <div class="bar"><button class="btn1" onclick="checkAnswer()" type="submit">SUBMIT</button></div>
         </div>
     </div>
@@ -148,9 +149,12 @@
         var userSelection = select.options[select.selectedIndex].value;
 
         var target = document.getElementById("targetHolder").value;
+        var scorelabel = document.getElementById("scorelabel").value;
 
         if (target === userSelection) {
             alert("Well done! You gave the right answer :)");
+            streakScore = streakScore + 1
+            document.getElementById("scorelabel").value = streakScore;
 
         } else {
             alert("Incorrect answer! Try again");
